@@ -1,0 +1,53 @@
+
+PHẦN 1: BÁO CÁO PHÂN TÍCH KIẾN TRÚC AN NANH MẬT KHẨU
+
+
+1. Nguy cơ lưu mật khẩu trên Chrome trước mã độc Infostealer
+
+Việc lưu mật khẩu trên trình duyệt Chrome vô cùng nguy hiểm cho lập trình viên vì:
+• Cơ chế lưu của Chrome: Chrome lưu mật khẩu trong file Login Data. File này được khóa bằng công cụ DPAPI có sẵn của Windows.
+• Lỗ hổng: DPAPI tự động mở khóa cho bất kỳ phần mềm nào đang chạy trên máy tính của bạn.
+• Cách hacker lấy trộm: Khi máy tính dính mã độc Infostealer (qua file crack, email giả mạo...), mã độc này chỉ cần sao chép file Login Data rồi ra lệnh cho Windows giải mã. Quá trình này diễn ra trong 1 giây là xong.
+• Hậu quả cho Dev: Ngoài mật khẩu, mã độc còn lấy đi "Cookie phiên đăng nhập". Hacker có thể vào thẳng các tài khoản như AWS, GitHub, Stripe của công ty mà không cần vượt qua mã bảo mật 2FA.
+
+2. Kiến trúc Zero-Knowledge và Client-side Decryption là gì?
+
+• Kiến trúc Zero-Knowledge (Không biết gì): Nghĩa là nhà cung cấp dịch vụ (Bitwarden) hoàn toàn "mù chữ" đối với dữ liệu của bạn. Họ chỉ giữ hộ bạn một chiếc két sắt đã khóa chặt, bản thân họ không có chìa khóa và không biết bên trong có gì.
+• Giải mã tại máy khách (Client-side Decryption): Mật khẩu của bạn được mã hóa thành các ký tự vô nghĩa ngay tại máy tính/điện thoại của bạn rồi mới gửi lên mạng. Khi tải về, máy của bạn tự giải mã bằng Master Passphrase. Server của Bitwarden chưa từng được nhìn thấy mật khẩu thô của bạn.
+Hỏi: Nếu server Bitwarden bị hack, dữ liệu của PixelForge Studio có bị lộ không?
+• Trả lời: KHÔNG. Hacker chỉ lấy được những file đã mã hóa bằng chuẩn AES-256 bit (như đống sắt vụn). Do Bitwarden không giữ chìa khóa, hacker cũng không thể giải mã được. Dữ liệu của studio an toàn 100% nếu Master Passphrase đủ mạnh.
+
+PHẦN 2: THIẾT KẾ CHÍNH SÁCH & KỊCH BẢN CHUYỂN ĐỔI
+
+
+3. Cách tạo Master Passphrase siêu mạnh và dễ nhớ
+
+Áp dụng phương pháp ghép từ ngẫu nhiên (Diceware): Chọn 4-5 từ không liên quan đến nhau, viết hoa chữ cái đầu, ngăn cách bằng ký tự đặc biệt và số.
+• Ví dụ chuẩn: Pixel#Cyber$Dragon%PixelForge^2026*Unreal
+• Đặc điểm: Dài 41 ký tự. Máy tính không thể dò (Brute-force) vì các từ không có nghĩa logic với nhau, nhưng con người rất dễ nhớ bằng cách tưởng tượng ra một cốt truyện game.
+
+4. Bảng cấu hình bộ sinh mật khẩu (Generator) trong Bitwarden
+
+Áp dụng bắt buộc cho 40 tài khoản của Studio:
+
+Tiêu chí	Thiết lập	Lý do
+Độ dài	24 ký tự	Độ dài tối ưu để chống mọi máy tính dò quét bẻ khóa.
+Loại ký tự	Bật cả 4: Chữ hoa (A-Z), Chữ thường (a-z), Số (0-9), Ký tự đặc biệt (!@#$)	Tăng tối đa độ phức tạp của mật khẩu.
+Yêu cầu tối thiểu	Ít nhất 3 ký tự cho mỗi loại	Tránh trường hợp mật khẩu dài nhưng chỉ toàn chữ thường.
+Tránh ký tự dễ lẫn	Bật (Tránh chuỗi dễ nhầm)	Loại bỏ các chữ dễ nhìn sai như: l (lờ) và 1 (số một), O (O hoa) và 0 (số không).
+
+
+5. Tại sao Auto-fill (Tự động điền) chống được Phishing (Lừa đảo)?
+
+• Con người dễ sai sót: Mắt người nhìn lướt qua trang web giả mạo githúb.com hoặc steampowered.xyz sẽ tưởng là trang thật và điền mật khẩu vào.
+• Phần mềm Bitwarden không bị lừa: Bitwarden kiểm tra chính xác từng ký tự của tên miền (Domain) ẩn dưới code hệ thống. Nếu sai lệch dù chỉ 1 dấu chấm, Bitwarden sẽ không tự động điền mật khẩu. Điều này giúp lập trình viên biết ngay trang web này là giả mạo để dừng lại.
+
+6. Quy trình quản lý Khóa Cấp cứu (Emergency Kit)
+
+Để tránh trường hợp Trưởng phòng Kỹ thuật gặp sự cố (tai nạn, nghỉ việc đột xuất) khiến Studio mất tài khoản, áp dụng quy trình sau:
+1. In khóa ra giấy: Viết Master Passphrase và Mã khôi phục 2FA ra giấy vật lý (Tuyệt đối không lưu file trên máy tính).
+2. Chia đôi chìa khóa: Cắt tờ giấy làm 2 phần (Phần A và Phần B).
+	• Phần A: Giao cho Trưởng phòng Kỹ thuật giữ.
+	• Phần B: Giao cho Giám đốc (CEO) giữ.
+3. Bỏ két sắt: Bỏ mỗi phần vào một phong bì niêm phong, cất ở 2 két sắt vật lý độc lập tại công ty. Khi cần cấp cứu, phải có mặt cả 2 người cùng mở.
+4. Cài đặt số (Tính năng Bitwarden): Bật tính năng Emergency Access trên Bitwarden, cấp quyền cho tài khoản của Giám đốc. Nếu Giám đốc gửi yêu cầu cứu trợ mà sau 48 tiếng Trưởng phòng Kỹ thuật không bấm từ chối (do mất liên lạc), tài khoản sẽ tự động chuyển quyền cho Giám đốc.

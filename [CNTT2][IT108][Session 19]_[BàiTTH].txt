@@ -1,0 +1,126 @@
+Phần 1 – Nhận diện rủi ro và xử lý sự cố
+
+
+1. Tình huống 1: Email giả mạo GitHub
+
+• Tên loại tấn công: Phishing kết hợp Typosquatting (Tấn công giả mạo tên miền gần giống).
+• Chi tiết giả mạo chính xác: Tên miền trong đường link bị sai lỗi chính tả: githuh-security.com (chữ h ở cuối từ githuh thay vì chữ b của github). Kẻ tấn công cố tình dùng tên miền này để đánh lừa người dùng thiếu chú ý.
+
+2. Tình huống 2: Website crack phần mềm
+
+• Tên cạm bẫy: Mã độc (Malware) ẩn nấp dưới dạng phần mềm Crack / Trojan.
+• Giải thích độ nguy hiểm của việc "tắt Windows Defender": Đây là hành vi vô hiệu hóa hàng rào phòng thủ duy nhất của hệ điều hành. Yêu cầu này chứng tỏ file tải về chứa mã độc và kẻ tấn công biết chắc chắn nó sẽ bị hệ thống bảo mật phát hiện và chặn lại. Khi tắt đi, máy tính của lập trình viên sẽ bị chiếm quyền điều khiển toàn diện mà không có bất kỳ cảnh báo nào.
+
+3. Đối chiếu với Quy tắc 5 KHÔNG
+
+• Tình huống 1: Áp dụng điều KHÔNG CLICK (Không bấm vào các đường link lạ, link yêu cầu xác thực tài khoản đột xuất).
+• Tình huống 2: Áp dụng điều KHÔNG DOWNLOAD / KHÔNG CÀI ĐẶT (Không tải và cài đặt các phần mềm crack, không rõ nguồn gốc và không làm theo hướng dẫn tắt trình diệt virus).
+
+4. Quy trình Cấp cứu 4 Bước (Khi đã lỡ chạy file crack)
+
+1. Bước 1: Ngắt kết nối mạng ngay lập tức (Rút dây mạng LAN, tắt Wi-Fi) nhằm ngăn chặn mã độc gửi dữ liệu ra ngoài hoặc tải thêm mã độc mới.
+2. Bước 2: Cách ly thiết bị và quét mã độc (Bật lại Windows Defender hoặc dùng phần mềm diệt virus uy tín từ USB an toàn để quét toàn bộ máy).
+3. Bước 3: Đổi mật khẩu hàng loạt từ một thiết bị an toàn khác (Đổi toàn bộ mật khẩu email, GitHub, ngân hàng, mạng xã hội...).
+4. Bước 4: Cài đặt lại hệ điều hành (Clean Install) nếu mã độc quá nặng để đảm bảo hệ thống sạch hoàn toàn, sau đó khôi phục dữ liệu từ các bản sao lưu an toàn trước đó.
+
+Phần 2 – Chuyển sang Password Manager
+
+
+1. Hậu quả của việc dùng chung mật khẩu
+
+• Nếu email nhóm bị lộ mật khẩu, kẻ tấn công sẽ dễ dàng đăng nhập thành công vào 2 tài khoản còn lại (GitHub tổ chức và Vercel deploy).
+• Tên kiểu tấn công: Credential Stuffing (Tấn công rải thông tin đăng nhập).
+
+2. Nguyên lý Zero-Knowledge Architecture
+
+Zero-Knowledge Architecture (Kiến trúc không tri thức) hoạt động theo nguyên lý: Dữ liệu mật khẩu của bạn được mã hóa ngay tại thiết bị cá nhân bằng Master Password trước khi gửi lên máy chủ Bitwarden. Phía Bitwarden chỉ lưu trữ các chuỗi ký tự đã mã hóa và không nắm giữ Master Password của bạn. Do đó, ngay cả khi máy chủ Bitwarden bị hacker xâm nhập, hacker cũng chỉ thu được các khối dữ liệu bị mã hóa vô nghĩa và không thể giải mã nếu không có Master Password của bạn.
+
+3. Cấu hình công cụ Generator tạo mật khẩu an toàn
+
+Để tạo mật khẩu mạnh mẽ và riêng biệt cho 3 dịch vụ, cấu hình công cụ Generator chuẩn như sau:
+
+Thông số	Giá trị cấu hình
+Độ dài	Tối thiểu 16 ký tự trở lên
+Chữ hoa (A–Z)	Bật (Ít nhất 1 ký tự)
+Chữ thường (a–z)	Bật (Ít nhất 1 ký tự)
+Chữ số (0–9)	Bật (Ít nhất 1 ký tự)
+Ký tự đặc biệt	Bật (Ít nhất 1 ký tự)
+
+
+Phần 3 – Kích hoạt 2FA cho tài khoản GitHub tổ chức
+
+
+1. Lý do nên dùng Authenticator App (TOTP) thay vì SMS OTP
+
+Nên chọn Authenticator App (TOTP) vì SMS OTP có 2 nhược điểm chí mạng sau:
+• Tấn công SIM Swap: Kẻ xấu có thể làm giả giấy tờ để cướp số điện thoại của bạn, từ đó nhận toàn bộ mã OTP gửi về SMS.
+• Bị nghe lén/đánh chặn qua mạng viễn thông: Sóng viễn thông (GSM) không được mã hóa đầu cuối, mã OTP gửi qua SMS có thể bị hacker đánh chặn thông qua các lỗ hổng mạng diễn thông hoặc mã độc đọc trộm SMS trên điện thoại.
+
+2. Thứ tự các bước kích hoạt 2FA bằng Google Authenticator trên GitHub
+
+1. Bước 1: Đăng nhập vào GitHub, vào phần Settings > Chọn Password and authentication.
+2. Bước 2: Tại mục Two-factor authentication, bấm chọn Enable two-factor authentication.
+3. Bước 3: Chọn phương thức Setup using an app (GitHub sẽ hiển thị một mã QR và một chuỗi khóa bí mật).
+4. Bước 4: Mở ứng dụng Google Authenticator trên điện thoại > Bấm dấu + > Chọn Quét mã QR (hoặc nhập khóa thủ công).
+5. Bước 5: Ứng dụng điện thoại sẽ tự động sinh ra mã 6 số liên tục thay đổi (TOTP). Nhập mã 6 số hiện tại này vào ô xác nhận trên trang web GitHub để hoàn tất liên kết.
+
+3. Lưu trữ 10 mã khôi phục (Recovery Codes)
+
+• Nơi NÊN lưu trữ: In ra giấy cất vào két sắt an toàn, hoặc lưu trong một USB mã hóa được cất kỹ, hoặc lưu bên trong mục ghi chú bảo mật của ứng dụng Password Manager (đã bật mã hóa).
+• Nơi KHÔNG NÊN lưu trữ: Không chụp ảnh màn hình lưu trong album điện thoại, không lưu file text trần trên màn hình máy tính, không gửi qua tin nhắn Zalo/Messenger/Email chính mình.
+
+Phần 4 – Bảo vệ Secrets trước khi push code
+
+
+1. Nhận diện Secrets bị hardcode
+
+Trong file config.js cũ, có 2 giá trị Secrets đang bị hardcode nguy hiểm:
+• sk-proj-abc123456789 (Giá trị của API_KEY)
+• SmartCampus@2026 (Giá trị của DB_PASSWORD)
+
+2. Viết lại file config.js đúng chuẩn
+
+javascript
+// Đọc các giá trị bí mật từ biến môi trường qua process.env
+const API_KEY = process.env.API_KEY;
+const DB_PASSWORD = process.env.DB_PASSWORD;
+
+function connectDatabase() {
+  return connect(DB_PASSWORD);
+}
+Hãy thận trọng khi sử dụng mã.
+
+3. Nội dung đầy đủ của 3 file cấu hình
+
+Nội dung file .env (Lưu cục bộ tại máy cá nhân, CHỨA GIÁ TRỊ THẬT):
+env
+API_KEY=sk-proj-abc123456789
+DB_PASSWORD=SmartCampus@2026
+Hãy thận trọng khi sử dụng mã.
+Nội dung file .gitignore (Ngăn không cho file cấu hình bị đẩy lên Git):
+text
+# Các file chứa biến môi trường bí mật
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Thư mục sinh ra bởi hệ thống / dependencies
+node_modules/
+Hãy thận trọng khi sử dụng mã.
+Nội dung file .env.example (Đẩy lên Git công khai để hướng dẫn đội ngũ, KHÔNG CHỨA GIÁ TRỊ THẬT):
+env
+# Mẫu cấu hình môi trường cho dự án SmartCampus
+# Hãy copy file này thành file .env và điền giá trị thật của bạn vào.
+
+API_KEY=your_api_key_here
+DB_PASSWORD=your_database_password_here
+Hãy thận trọng khi sử dụng mã.
+
+4. Quy tắc 4 Bước Kiểm tra trước khi Push
+
+• Bước 1: Kiểm tra trạng thái Git (git status) để đảm bảo file .env không nằm trong danh sách các file sắp sửa bị commit (Staged files).
+• Bước 2: Kiểm tra nội dung thay đổi (git diff) để xem lại từng dòng code xem có vô tình hardcode chuỗi ký tự bí mật nào vào file source code hay không.
+• Bước 3: Xác thực file .gitignore đã hoạt động bằng cách kiểm tra xem file .env đã được chuyển sang màu xám/bị ẩn đi trong cây thư mục của IDE (như VS Code) chưa.
+• Bước 4: Chạy thử local bằng biến môi trường để đảm bảo ứng dụng vẫn hoạt động tốt, nhận đúng dữ liệu từ file .env qua process.env trước khi thực hiện lệnh git push cuối cùng.

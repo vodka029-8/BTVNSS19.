@@ -1,0 +1,56 @@
+
+Phần 1: Phân tích 2 Giải pháp Xác thực
+
+
+1. Phân tích 3 lớp yếu tố xác thực danh tính số
+
+Xác thực danh tính số dựa trên việc kết hợp các lớp yếu tố độc lập để chứng minh danh tính người dùng. 3 lớp cốt lõi bao gồm:
+• Something You Know (Điều bạn biết): Thông tin chỉ có trong trí nhớ của bạn (Mật khẩu, mã PIN, câu hỏi bảo mật).
+• Something You Have (Điều bạn có): Vật sở hữu vật lý hoặc kỹ thuật số mà bạn nắm giữ (Điện thoại, SIM, Token key, Ứng dụng Authenticator chứa khóa bí mật).
+• Something You Are (Điều bạn là): Đặc điểm sinh trắc học không thể thay đổi của bạn (Vân tay, khuôn mặt FaceID, võng mạc).
+Khi kích hoạt Xác thực 2 Yếu tố (2FA):
+• Mật khẩu đại diện cho yếu tố Something You Know.
+• Mã OTP (cho dù gửi qua SMS hay sinh ra từ app) đại diện cho yếu tố Something You Have (chứng minh bạn đang nắm giữ thiết bị nhận/sinh mã).
+
+2. Nguyên lý hoạt động của Thuật toán TOTP (Time-based One-Time Password)
+
+Ứng dụng Authenticator có thể sinh mã chính xác 100% ở Chế độ Máy bay (Offline hoàn toàn) là nhờ vào cơ chế chia sẻ bí mật và đồng bộ thời gian, cụ thể qua thuật toán RFC 6238:
+1. Khóa bí mật dùng chung (Shared Secret): Khi kích hoạt 2FA lần đầu, hệ thống tạo ra một khóa bí mật (dưới dạng chuỗi ký tự hoặc mã QR). Khi quét QR, khóa này được lưu trữ an toàn trên chip nhớ của điện thoại. Hệ thống GitHub cũng lưu trữ một bản sao của khóa này trong cơ sở dữ liệu.
+2. Đồng hồ nội bộ (Epoch Time): Cả máy chủ và điện thoại đều có một chiếc đồng hồ nội bộ chạy hoàn toàn độc lập nhưng đồng bộ thời gian quốc tế (Unix time).
+3. Công thức tính toán:
+	• Thuật toán lấy thời gian hiện tại chia cho 30 giây để tạo ra một giá trị gọi là Time Step (\(T\)). Do đó, cứ trong block 30 giây, giá trị \(T\) trên điện thoại và máy chủ là trùng nhau tuyệt đối.
+	• Điện thoại dùng khóa bí mật (Shared Secret) kết hợp với \(T\) qua hàm băm mật mã: \(\text{HMAC-SHA1}(\text{Secret}, T)\).
+	• Kết quả băm sau đó được cắt gọn thành mã 6 số hiển thị trên màn hình.
+Kết luận: Vì quá trình này thuần túy là tính toán toán học dựa trên Khóa bí mật (đã lưu sẵn) và Thời gian (đồng hồ của máy), ứng dụng không cần bất kỳ kết nối mạng nào để sinh mã. Máy chủ chỉ cần tính toán độc lập công thức tương tự và đối chiếu với mã người dùng nhập vào.
+
+Phần 2: Lập bảng So sánh Trade-off & Ra quyết định
+
+
+3. Bảng so sánh chi tiết giữa SMS OTP và Authenticator TOTP
+
+
+Tiêu chí đánh giá	Giải pháp 1: SMS OTP	Giải pháp 2: TOTP Authenticator
+1. Chống SIM Swapping & Nghe lén SS7	Kém — Kẻ xấu có thể dùng Social Engineering lừa nhà mạng cấp lại SIM (SIM Swapping) hoặc hack mạng viễn thông toàn cầu (SS7) để chặn bắt SMS.	Tuyệt đối — Khóa bí mật chỉ nằm cục bộ trên thiết bị của bạn. Không một cuộc tấn công mạng viễn thông nào có thể can thiệp được.
+2. Tính sẵn sàng khi Offline / Nước ngoài	Bị động — Phụ thuộc hoàn toàn vào sóng viễn thông. Khi nhân sự bay GDC nước ngoài hoặc ở trên máy bay sẽ bị cô lập, không nhận được mã.	Tối ưu — Hoạt động 100% ngoại tuyến mọi lúc mọi nơi, không phụ thuộc nhà mạng, quốc gia hay trạng thái kết nối.
+3. Tiện dụng & Chi phí vận hành	Tốn kém — Thân thiện với người dùng phổ thông, nhưng Studio phải trả phí phát sinh liên tục cho các nhà mạng viễn thông quốc tế trên mỗi lượt gửi mã.	Miễn phí — Doanh nghiệp không tốn chi phí vận hành. Thao tác quét vân tay/FaceID mở app lấy mã rất nhanh chóng.
+4. Rủi ro khi mất điện thoại	Dễ khôi phục nhưng nguy hiểm — Chỉ cần làm lại SIM là có lại mã, tuy nhiên kẻ trộm điện thoại vật lý có thể rút SIM qua máy khác để hack tài khoản.	Cần quản trị rủi ro — Nếu mất máy cần có Backup Codes hoặc tài khoản Cloud Sync để khôi phục quyền truy cập.
+
+
+4. Kết luận lựa chọn của Ban Giám đốc PixelForge Studio
+
+Ban Giám đốc PixelForge Studio quyết định áp dụng bắt buộc Giải pháp 2 (Authenticator TOTP) cho toàn bộ đội ngũ kỹ sư và quản trị viên.
+Lý do lựa chọn:
+1. Triệt tiêu rủi ro SIM Swapping: Tài khoản quản trị nắm giữ mã nguồn gốc của game và doanh thu lớn. Mối đe dọa từ Social Engineering nhắm vào nhà mạng viễn thông để cướp SIM của nhà sáng lập là cực kỳ nguy hiểm. TOTP cô lập hoàn toàn lớp bảo mật này khỏi hạ tầng viễn thông lỏng lẻo.
+2. Đáp ứng đặc thù di chuyển liên tục: Các lập trình viên thường xuyên đi công tác nước ngoài (GDC) hoặc làm việc từ xa trên máy bay cần một giải pháp hoạt động 100% Offline để không làm gián đoạn tiến độ công việc (Early Access).
+
+Phần 3: Quản lý Rủi ro & Backup Codes
+
+
+5. Cơ chế quản lý bộ 10 Mã Khôi phục (Backup / Recovery Codes)
+
+• Mục đích: Bộ mã khôi phục là "chiếc chìa khóa dự phòng cuối cùng". Khi bạn bị mất điện thoại, hư hỏng thiết bị hoặc vô tình xóa ứng dụng Authenticator, bộ mã này được dùng để đăng nhập vào tài khoản mà không cần mã OTP, từ đó giúp bạn cấu hình lại thiết bị 2FA mới.
+Hướng dẫn 2 vị trí lưu trữ an toàn tuyệt đối:
+1. Bản in vật lý cất trong két sắt an toàn: In bộ mã ra giấy và lưu trữ tại nơi an toàn bảo mật lý học (két sắt gia đình hoặc tủ tài liệu bảo mật của Studio). Kẻ trộm mạng không thể hack được một tờ giấy vật lý.
+2. Trình quản lý mật khẩu doanh nghiệp (Password Manager): Lưu trữ bộ mã trong các phần mềm mã hóa đầu cuối chuẩn quân đội như 1Password, Bitwarden (tài khoản này phải được bảo vệ bằng một Master Password cực kỳ mạnh và độc lập).
+1 Sai lầm tai hại cần tránh:
+• Chụp màn hình hoặc lưu file Text (backup_codes.txt) trực tiếp trên Desktop, Google Drive công cộng hoặc mục Notes của điện thoại. Nếu máy tính bị nhiễm mã độc phần mềm gián điệp (Spyware/Stealer) hoặc tài khoản Cloud cá nhân bị lộ, kẻ xấu sẽ chiếm trọn bộ mã này và vô hiệu hóa hoàn toàn lớp bảo mật 2FA của bạn ngay lập tức.
